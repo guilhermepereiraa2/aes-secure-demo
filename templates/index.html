@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AES Secure Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <main class="container">
+
+        <section class="hero">
+            <div>
+                <p class="tag">AES Secure Demo</p>
+
+                <h1>Proteção de dados com AES</h1>
+
+                <p class="subtitle">
+                    Insira uma informação confidencial, criptografe com AES-256
+                    e recupere o dado após validar acesso com um código temporário enviado por e-mail.
+                </p>
+            </div>
+
+            <div class="visual-card">
+                <div class="cube">AES</div>
+                <p>Criptografia simétrica</p>
+            </div>
+        </section>
+
+        {% if mensagem %}
+            <div class="alert success">
+                {{ mensagem }}
+            </div>
+        {% endif %}
+
+        {% if erro %}
+            <div class="alert error">
+                {{ erro }}
+            </div>
+        {% endif %}
+
+        <section class="grid">
+
+            <div class="card">
+                <h2>1. Criptografar dados</h2>
+
+                <form action="/criptografar" method="POST">
+                    <label>Nome</label>
+                    <input 
+                        type="text" 
+                        name="nome" 
+                        placeholder="Ex: Cristiano Ronaldo"
+                    >
+
+                    <label>Documento/CPF</label>
+                    <input 
+                        type="text" 
+                        name="documento" 
+                        id="cpf"
+                        maxlength="14"
+                        placeholder="Ex: 123.456.789-00"
+                        oninput="formatarCPF(this)"
+                    >
+
+                    <label>Informação confidencial</label>
+                    <textarea 
+                        name="informacao" 
+                        placeholder="Ex: Candidata aprovada para fase final do processo seletivo"
+                    ></textarea>
+
+                    <label>E-mail autorizado para acesso</label>
+                    <input 
+                        type="email" 
+                        name="email_autorizado" 
+                        placeholder="Ex: seu_email@gmail.com"
+                    >
+
+                    <button type="submit">
+                        Criptografar com AES
+                    </button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>2. Validar acesso</h2>
+
+                <form action="/enviar_codigo" method="POST">
+                    <label>E-mail autorizado</label>
+                    <input 
+                        type="email" 
+                        name="email_acesso" 
+                        placeholder="Digite o e-mail autorizado"
+                    >
+
+                    <button type="submit" class="secondary">
+                        Enviar código por e-mail
+                    </button>
+                </form>
+
+                <hr class="divider">
+
+                <form action="/descriptografar" method="POST">
+                    <label>Código temporário</label>
+                    <input 
+                        type="text" 
+                        name="codigo_acesso" 
+                        maxlength="6"
+                        placeholder="Digite o código recebido por e-mail"
+                    >
+
+                    <button type="submit" class="secondary">
+                        Descriptografar dado
+                    </button>
+                </form>
+
+                <div class="info-box">
+                    O e-mail é usado apenas para receber o código temporário.
+                    Depois, basta informar o código recebido. A chave secreta AES não aparece para o usuário:
+                    a aplicação busca a chave automaticamente no cofre local
+                    <strong>vault/secret_vault.json</strong>.
+                </div>
+            </div>
+
+        </section>
+
+        <section class="flow">
+            <h2>Fluxo da demonstração</h2>
+
+            <div class="steps">
+
+                <div class="step">
+                    <span>1</span>
+                    <p>Dado sensível</p>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="step">
+                    <span>2</span>
+                    <p>Chave AES no cofre</p>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="step">
+                    <span>3</span>
+                    <p>Código por e-mail</p>
+                </div>
+
+                <div class="arrow">→</div>
+
+                <div class="step">
+                    <span>4</span>
+                    <p>Dado recuperado</p>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="results">
+
+            {% if dado_criptografado %}
+                <div class="result-card">
+                    <h3>Dado criptografado</h3>
+                    <pre>{{ dado_criptografado }}</pre>
+                </div>
+            {% endif %}
+
+            {% if dado_recuperado %}
+                <div class="result-card recovered">
+                    <h3>Dado descriptografado</h3>
+                    <pre>{{ dado_recuperado }}</pre>
+                </div>
+            {% endif %}
+
+        </section>
+
+    </main>
+
+    <script>
+        function formatarCPF(campo) {
+            let valor = campo.value;
+
+            valor = valor.replace(/\D/g, "");
+
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+
+            campo.value = valor;
+        }
+    </script>
+</body>
+</html>
